@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Income Predictor</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-image: url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f');
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      background-color: rgba(255, 255, 255, 0.95);
+      padding: 30px 40px;
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
+      max-width: 800px;
+      width: 90%;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+    }
+
+    .form-grid input {
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      width: 100%;
+    }
+
+    .predict-button {
+      display: block;
+      margin: 30px auto 10px auto;
+      background-color: #ff69b4;
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      font-size: 16px;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .predict-button:hover {
+      background-color: #ff1493;
+    }
+
+    #result {
+      display: none;
+      margin-top: 20px;
+      background-color: #ffb6c1;
+      padding: 20px;
+      border-radius: 15px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 18px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Income Prediction Form</h2>
+
+    <div class="form-grid">
+      <input type="number" placeholder="Age" id="age">
+      <input type="number" placeholder="Workclass (encoded)" id="workclass">
+      <input type="number" placeholder="fnlwgt" id="fnlwgt">
+      <input type="number" placeholder="Education (encoded)" id="education">
+      <input type="number" placeholder="Education-num" id="education_num">
+      <input type="number" placeholder="Marital-status (encoded)" id="marital">
+      <input type="number" placeholder="Occupation (encoded)" id="occupation">
+      <input type="number" placeholder="Relationship (encoded)" id="relationship">
+      <input type="number" placeholder="Race (encoded)" id="race">
+      <input type="number" placeholder="Sex (encoded)" id="sex">
+      <input type="number" placeholder="Capital-gain" id="capital_gain">
+      <input type="number" placeholder="Capital-loss" id="capital_loss">
+      <input type="number" placeholder="Hours-per-week" id="hours">
+      <input type="number" placeholder="Native-country (encoded)" id="country">
+    </div>
+
+    <button class="predict-button" onclick="predict()">Predict</button>
+
+    <div id="result"></div>
+  </div>
+
+  <script>
+    async function predict() {
+      const values = [
+        'age', 'workclass', 'fnlwgt', 'education', 'education_num',
+        'marital', 'occupation', 'relationship', 'race', 'sex',
+        'capital_gain', 'capital_loss', 'hours', 'country'
+      ];
+
+      const features = values.map(id => parseFloat(document.getElementById(id).value));
+
+      if (features.some(isNaN)) {
+        alert("Please fill all fields with valid numbers.");
+        return;
+      }
+
+      const res = await fetch("http://127.0.0.1:8000/predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ features: features })
+      });
+
+      const data = await res.json();
+      const resultBox = document.getElementById("result");
+
+      resultBox.style.display = "block";
+      resultBox.innerHTML = `
+        Based on the input data, this individual is predicted to earn <span style="color: ${data.prediction ? 'green' : 'blue'}">
+        ${data.prediction === 1 ? "more than $50K annually" : "less than or equal to $50K annually"}</span>.<br><br>
+        Confidence score: ${Math.round(data.probability * 100)}%
+      `;
+    }
+  </script>
+
+</body>
+</html>
